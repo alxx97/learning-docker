@@ -1,0 +1,66 @@
+# Managing files in your images
+
+1. To copy local files to the image, we use the `COPY` command:
+    
+    ```docker
+    COPY <src-path-on-host> <dest-path-on-image>
+    ```
+    
+    For example:
+    
+    ```docker
+    COPY /projects/pipeline_v3/pipeline.py /app/pipeline.py
+    ```
+    
+    **Note:** If the destination path does not have a filename, the original filename is used, for example:
+    
+    
+    ```docker
+    COPY /projects/pipeline_v3/pipeline.py /app/
+    ```
+    
+    Hences the final file is `/app/pipeline.py` 
+    
+    **Important:** During the image build process, it is not possible to copy files located in the parent directory where the Dockerfile is located. It is generally recommended to keep everything at the same level as the Dockerfile or in subdirectories.
+    
+2. To copy entire directories, we specify the directory path without the filename:
+    
+    ```docker
+    COPY <src-folder> <dest-folder>
+    ```
+    
+    For example:
+    
+    ```docker
+    COPY /projects/pipeline_v3/ /app/
+    ```
+    
+    In this way we copy all the content within the `pipeline_v3` directory to the path `/app/pipeline_v3/`.
+    
+3. It is possible to download files within an image using `curl` and `unzip`:
+    
+    For downloading a file we use:
+    
+    ```docker
+    RUN curl <file-url> -o <destination>
+    ```
+    
+    For unzipping the file we use:
+    
+    ```docker
+    RUN unzip <dest-folder>/<filename>.zip -d <unzipped-directory>
+    ```
+    
+    For deleting the original zip file:
+    
+    ```docker
+    RUN rm <copy-directory>/<filename>.zip
+    ```
+    
+    **Important:** Every command that downloads files adds to the final image size, even after the files have been deleted. To avoid this problem, it's possible to download, decompress, and delete the files in a single command. We can do this by chaining the commands together with the `&&` operator, and to improve readability, we can use backslashes to create a multi-line command (as in Python):
+    
+    ```docker
+    RUN curl <file-download-url> -o <destination-directory>/<filename>.zip\
+    		&& unzip <destination-directory>/<filename>.zip -d <unzipped-directory> \
+    		&& rm <destination-directory>/<filename>.zip
+    ```
